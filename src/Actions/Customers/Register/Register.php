@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace App\Actions\Customers\Register;
 
 use App\Actions\Customers\Register\ValidationResult;
-use App\Actions\Customers\Register\Validator;
 use App\Model\Table\CustomersTable;
 use Cake\Http\Exception\BadRequestException;
+
+interface IValidator
+{
+    public function result(bool $isPost);
+}
 
 /**
  * App\Controller\CustomersController内 registerメソッド用
@@ -15,16 +19,20 @@ use Cake\Http\Exception\BadRequestException;
 class Register
 {
     private CustomersTable $customersTable;
+    private IValidator $validator;
 
     /**
      * DI注入
      *
      * @param CustomersTable $customersTable
+     * @param Validator $validator
      */
     public function __construct(
-        CustomersTable $customersTable
+        CustomersTable $customersTable,
+        IValidator $validator
     ) {
         $this->customersTable = $customersTable;
+        $this->validator = $validator;
     }
 
     /**
@@ -36,7 +44,7 @@ class Register
      */
     public function action(bool $isPost, array $requests): ValidationResult
     {
-        $validationResult = Validator::result($isPost);
+        $validationResult = $this->validator->result($isPost);
         if (!$validationResult->isValid()) {
             throw new BadRequestException($validationResult->getMessage());
         }
